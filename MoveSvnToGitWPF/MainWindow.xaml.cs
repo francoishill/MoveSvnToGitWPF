@@ -13,6 +13,7 @@ using System.Windows.Navigation;
 using SharedClasses;
 using System.IO;
 using System.Diagnostics;
+using System.Windows.Shell;
 
 namespace MoveSvnToGitWPF
 {
@@ -78,6 +79,9 @@ namespace MoveSvnToGitWPF
 					rootForRemoteGitRepos,
 					true, out skippedDirectoriesDueToHttps,
 					UpdateProgress);
+				UserMessages.ShowWarningMessage("The following directories are checked because their SVN urls are https, this is not currently supported:"
+					+ Environment.NewLine + Environment.NewLine
+					+ string.Join(Environment.NewLine, skippedDirectoriesDueToHttps));
 				ActionFromSeparateThread(delegate
 				{
 					listBox1.ItemsSource = moveItemList;
@@ -92,6 +96,9 @@ namespace MoveSvnToGitWPF
 		{
 			ThreadingInterop.DoAction(delegate
 			{
+				SetProgressState(TaskbarItemProgressState.Normal);
+				SetProgressValue(0);
+
 				var distinct_GitCloned =
 					moveItemList.Select(mi => Path.GetDirectoryName(mi.LocalGitClonedFolder))
 					.Distinct()
@@ -101,18 +108,34 @@ namespace MoveSvnToGitWPF
 					.Distinct()
 					.ToList();
 
+				int doneCount = 0;
 				foreach (var moveitem in moveItemList)
+				{
 					moveitem.MoveNow(
 						AppendMessage,
 						true,
 						false,
 						false);
+					SetProgressValue((int)Math.Truncate(100D * (double)++doneCount / (double)moveItemList.Count));
+				}
 
 				//Open the folders in explorer (using the root of each moveitem)
 				distinct_GitCloned.ToList().ForEach(fol => Process.Start("explorer", fol));
 				distinct_RemoteGitRepo.ToList().ForEach(fol => Process.Start("explorer", fol));
+
+				SetProgressState(TaskbarItemProgressState.None);
 			},
 			false);
+		}
+
+		private void SetProgressState(System.Windows.Shell.TaskbarItemProgressState state)
+		{
+			ActionFromSeparateThread(delegate { this.TaskbarItemInfo.ProgressState = state; });
+		}
+
+		private void SetProgressValue(int valuePercentage)
+		{
+			ActionFromSeparateThread(delegate { this.TaskbarItemInfo.ProgressValue = ((double)valuePercentage) / 100D; });
 		}
 	}
 
