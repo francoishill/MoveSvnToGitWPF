@@ -79,7 +79,7 @@ namespace MoveSvnToGitWPF
 					rootForRemoteGitRepos,
 					true, out skippedDirectoriesDueToHttps,
 					UpdateProgress);
-				UserMessages.ShowWarningMessage("The following directories are checked because their SVN urls are https, this is not currently supported:"
+				UserMessages.ShowWarningMessage("The following directories are skipped because their SVN urls are https (not currently supported):"
 					+ Environment.NewLine + Environment.NewLine
 					+ string.Join(Environment.NewLine, skippedDirectoriesDueToHttps));
 				ActionFromSeparateThread(delegate
