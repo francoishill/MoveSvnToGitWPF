@@ -13,5 +13,14 @@ namespace MoveSvnToGitWPF
 	/// </summary>
 	public partial class App : Application
 	{
+		protected override void OnStartup(StartupEventArgs e)
+		{
+			SharedClasses.AutoUpdating.CheckForUpdates_ExceptionHandler();
+
+			base.OnStartup(e);
+
+			MoveSvnToGitWPF.MainWindow mw = new MainWindow();
+			mw.ShowDialog();
+		}
 	}
 }

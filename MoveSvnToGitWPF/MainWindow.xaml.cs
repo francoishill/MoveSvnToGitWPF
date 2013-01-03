@@ -137,6 +137,16 @@ namespace MoveSvnToGitWPF
 		{
 			ActionFromSeparateThread(delegate { this.TaskbarItemInfo.ProgressValue = ((double)valuePercentage) / 100D; });
 		}
+
+		private void labelAbout_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+		{
+			AboutWindow2.ShowAboutWindow(new System.Collections.ObjectModel.ObservableCollection<DisplayItem>()
+			{
+				new DisplayItem("Author", "Francois Hill"),
+				new DisplayItem("Icon(s) obtained from", "http://www.iconfinder.com", "http://www.iconfinder.com/icondetails/66891/128/move_tag_icon")
+
+			});
+		}
 	}
 
 	public class NullableIntToVisibilityConverter : IValueConverter
