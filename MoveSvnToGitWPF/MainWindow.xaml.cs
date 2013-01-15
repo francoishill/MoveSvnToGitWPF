@@ -61,16 +61,16 @@ namespace MoveSvnToGitWPF
 			ThreadingInterop.DoAction(delegate
 			{
 				string rootSvnCheckouts =
-					@"C:\Francois\Dev\VSprojects";
-					//FileSystemInterop.SelectFolder("Select root folder containing all SVN checkouts", @"C:\Francois\Dev\VSprojects");
+					//@"C:\Francois\Dev\VSprojects";
+					FileSystemInterop.SelectFolder("Select root folder containing all SVN checkouts", @"C:\Francois\Dev\VSprojects");
 				if (rootSvnCheckouts == null) return;
 				string rootDirForGitClones =
-					@"C:\Francois\Other\tmp\testGit\Checkouts";
-					//FileSystemInterop.SelectFolder("Select root folder for Git cloning");
+					//@"C:\Francois\Other\tmp\testGit\Checkouts";
+					FileSystemInterop.SelectFolder("Select root folder for Git cloning");
 				if (rootDirForGitClones == null) return;
 				string rootForRemoteGitRepos =
-					@"C:\Francois\Other\tmp\testGit\_repos";
-					//FileSystemInterop.SelectFolder("Select root folder for Git (remote) repos");
+					//@"C:\Francois\Other\tmp\testGit\_repos";
+					FileSystemInterop.SelectFolder("Select root folder for Git (remote) repos");
 				if (rootForRemoteGitRepos == null) return;
 				List<string> skippedDirectoriesDueToHttps;
 				moveItemList = MoveFromSvnToGit.GetListInRootSvnDir(
