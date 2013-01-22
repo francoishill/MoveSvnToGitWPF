@@ -20,13 +20,18 @@ namespace MoveSvnToGitWPF
 	/// <summary>
 	/// Interaction logic for MainWindow.xaml
 	/// </summary>
-	public partial class MainWindow : Window
+	public partial class MainWindow : Window, System.Windows.Forms.IWin32Window
 	{
 		List<MoveFromSvnToGit> moveItemList = null;
 
 		public MainWindow()
 		{
 			InitializeComponent();
+		}
+
+		public IntPtr Handle
+		{
+			get { return this.GetHandle(); }
 		}
 
 		private void ActionFromSeparateThread(Action action)
@@ -60,18 +65,28 @@ namespace MoveSvnToGitWPF
 		{
 			ThreadingInterop.DoAction(delegate
 			{
-				string rootSvnCheckouts =
-					//@"C:\Francois\Dev\VSprojects";
-					FileSystemInterop.SelectFolder("Select root folder containing all SVN checkouts", @"C:\Francois\Dev\VSprojects");
-				if (rootSvnCheckouts == null) return;
-				string rootDirForGitClones =
-					//@"C:\Francois\Other\tmp\testGit\Checkouts";
-					FileSystemInterop.SelectFolder("Select root folder for Git cloning");
-				if (rootDirForGitClones == null) return;
-				string rootForRemoteGitRepos =
-					//@"C:\Francois\Other\tmp\testGit\_repos";
-					FileSystemInterop.SelectFolder("Select root folder for Git (remote) repos");
-				if (rootForRemoteGitRepos == null) return;
+				string rootSvnCheckouts = null;//@"C:\Francois\Dev\VSprojects";
+				string rootDirForGitClones = null;//@"C:\Francois\Other\tmp\testGit\Checkouts";
+				string rootForRemoteGitRepos = null;//@"C:\Francois\Other\tmp\testGit\_repos";
+
+				ActionFromSeparateThread(delegate
+				{
+					rootSvnCheckouts =
+						FileSystemInterop.SelectFolder("Select root folder containing all SVN checkouts", @"C:\Francois\Dev\VSprojects", owner: this);
+					if (rootSvnCheckouts == null) return;
+					rootDirForGitClones =
+						FileSystemInterop.SelectFolder("Select root folder for Git cloning", owner: this);
+					if (rootDirForGitClones == null) return;
+					rootForRemoteGitRepos =
+						FileSystemInterop.SelectFolder("Select root folder for Git (remote) repos", owner: this);
+					if (rootForRemoteGitRepos == null) return;//Wont actually do anything as it is the last line of this delegate function anyway
+				});
+
+				if (rootSvnCheckouts == null
+					|| rootDirForGitClones == null
+					|| rootForRemoteGitRepos == null)
+					return;
+
 				List<string> skippedDirectoriesDueToHttps;
 				moveItemList = MoveFromSvnToGit.GetListInRootSvnDir(
 					rootSvnCheckouts,
@@ -79,11 +94,16 @@ namespace MoveSvnToGitWPF
 					rootForRemoteGitRepos,
 					true, out skippedDirectoriesDueToHttps,
 					UpdateProgress);
-				UserMessages.ShowWarningMessage("The following directories are skipped because their SVN urls are https (not currently supported):"
-					+ Environment.NewLine + Environment.NewLine
-					+ string.Join(Environment.NewLine, skippedDirectoriesDueToHttps));
+
 				ActionFromSeparateThread(delegate
 				{
+					if (skippedDirectoriesDueToHttps.Count > 0)
+						UserMessages.ShowWarningMessage(
+							this,
+							"The following directories are skipped because their SVN urls are https (not currently supported):"
+							+ Environment.NewLine + Environment.NewLine
+							+ string.Join(Environment.NewLine, skippedDirectoriesDueToHttps));
+
 					listBox1.ItemsSource = moveItemList;
 					progressBar1.Visibility = System.Windows.Visibility.Hidden;
 				});
@@ -91,7 +111,7 @@ namespace MoveSvnToGitWPF
 			false,
 			apartmentState: System.Threading.ApartmentState.STA);
 		}
-		
+
 		private void buttonRunAll_Click(object sender, RoutedEventArgs e)
 		{
 			ThreadingInterop.DoAction(delegate
@@ -146,6 +166,11 @@ namespace MoveSvnToGitWPF
 				new DisplayItem("Icon(s) obtained from", "http://www.iconfinder.com", "http://www.iconfinder.com/icondetails/66891/128/move_tag_icon")
 
 			});
+		}
+
+		private void Window_Loaded(object sender, RoutedEventArgs e)
+		{
+			this.WindowState = System.Windows.WindowState.Maximized;
 		}
 	}
 

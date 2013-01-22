@@ -8,7 +8,7 @@
 		Background='#333'
 		FontSize='10'
 		WindowStartupLocation='CenterScreen'
-		WindowState='Maximized'>
+		Loaded='Window_Loaded'>
 	<Window.Resources>
 		<sharedclasses:BooleanToVisibilityConverter x:Key='booleanToVisibilityConverter' />
 		<LinearGradientBrush x:Key='itemBackground'
