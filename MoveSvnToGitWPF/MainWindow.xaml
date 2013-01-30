@@ -3,6 +3,7 @@
 		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 		xmlns:sharedclasses='clr-namespace:SharedClasses'
 		Title='Move SVN to Git'
+		Icon='app.ico'
 		Height='368'
 		Width='881'
 		Background='#333'
