@@ -102,6 +102,7 @@
     </Compile>
     <Compile Include="..\..\SharedClasses\UserMessageWithTextbox.cs">
       <Link>UserMessageWithTextbox.cs</Link>
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="..\..\SharedClasses\UserMessageWithTextbox.designer.cs">
       <Link>UserMessageWithTextbox.designer.cs</Link>
