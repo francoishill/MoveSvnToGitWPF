@@ -34,7 +34,11 @@
 					Background='Transparent'
 					Foreground='#eee'
 					Click='buttonAddAllInFolder_Click' />
-			<Button Content='Run all'
+            <Button Content='Add single folder'
+                    Background='Transparent'
+                    Foreground='#eee'
+                    Click='buttonSingleFolder_Click' />
+            <Button Content='Run all'
 					Margin='10 0 0 0'
 					Foreground='#eee'
 					Background='Transparent'

@@ -14,6 +14,7 @@ using SharedClasses;
 using System.IO;
 using System.Diagnostics;
 using System.Windows.Shell;
+using System.Collections.ObjectModel;
 
 namespace MoveSvnToGitWPF
 {
@@ -22,11 +23,17 @@ namespace MoveSvnToGitWPF
 	/// </summary>
 	public partial class MainWindow : Window, System.Windows.Forms.IWin32Window
 	{
-		List<MoveFromSvnToGit> moveItemList = null;
+		ObservableCollection<MoveFromSvnToGit> moveItemList = new ObservableCollection<MoveFromSvnToGit>();
 
 		public MainWindow()
 		{
 			InitializeComponent();
+		}
+
+		private void Window_Loaded(object sender, RoutedEventArgs e)
+		{
+			this.WindowState = System.Windows.WindowState.Maximized;
+			listBox1.ItemsSource = moveItemList;
 		}
 
 		public IntPtr Handle
@@ -53,6 +60,7 @@ namespace MoveSvnToGitWPF
 			ActionFromSeparateThread(delegate
 			{
 				textBox1.Text += mes + Environment.NewLine;
+				textBox1.ScrollToEnd();
 			});
 		}
 
@@ -88,7 +96,7 @@ namespace MoveSvnToGitWPF
 					return;
 
 				List<string> skippedDirectoriesDueToHttps;
-				moveItemList = MoveFromSvnToGit.GetListInRootSvnDir(
+				var tmpListInFolder = MoveFromSvnToGit.GetListInRootSvnDir(
 					rootSvnCheckouts,
 					rootDirForGitClones,
 					rootForRemoteGitRepos,
@@ -104,12 +112,55 @@ namespace MoveSvnToGitWPF
 							+ Environment.NewLine + Environment.NewLine
 							+ string.Join(Environment.NewLine, skippedDirectoriesDueToHttps));
 
-					listBox1.ItemsSource = moveItemList;
 					progressBar1.Visibility = System.Windows.Visibility.Hidden;
+
+					foreach (var item in tmpListInFolder)
+						moveItemList.Add(item);
 				});
 			},
 			false,
 			apartmentState: System.Threading.ApartmentState.STA);
+		}
+
+		private string lastUsedSvnDir = null;
+		private string lastUsedLocalGitCloneDir = null;
+		private string lastUsedLocalGitRepoDir = null;
+		private void buttonSingleFolder_Click(object sender, RoutedEventArgs e)
+		{
+			var svnDirectory = FileSystemInterop.SelectFolder("Please select the local svn directory", lastUsedSvnDir ?? @"C:\");
+			if (svnDirectory == null) return;
+			lastUsedSvnDir = svnDirectory;
+
+			var localGitCloneDir = FileSystemInterop.SelectFolder("Now select the local Git directory in which to clone the working copy", lastUsedLocalGitCloneDir ?? svnDirectory);
+			if (localGitCloneDir == null) return;
+			lastUsedLocalGitCloneDir = localGitCloneDir;
+
+			var localGitRepoDir = FileSystemInterop.SelectFolder("Finally select the directory for the Git remote repository", lastUsedLocalGitRepoDir ?? localGitCloneDir);
+			if (localGitRepoDir == null) return;
+			lastUsedLocalGitRepoDir = localGitRepoDir;
+
+			progressBar1.IsIndeterminate = true;
+			try
+			{
+				bool skippedDueToHttps;
+				MoveFromSvnToGit tmpNewItem = MoveFromSvnToGit.GetMoveItemFromFolder(svnDirectory, localGitCloneDir, localGitRepoDir, out skippedDueToHttps);
+				if (skippedDueToHttps)
+				{
+					UserMessages.ShowErrorMessage("The directory cannot be merged because the svn repo is on https, this is not currently supported. Consider doing a SVN dump from the SVN repo");
+					return;
+				}
+				else if (tmpNewItem == null)
+				{
+					UserMessages.ShowErrorMessage("Something went wrong, we cannot convert the SVN repo to a Git repo");
+					return;
+				}
+
+				moveItemList.Add(tmpNewItem);
+			}
+			finally
+			{
+				progressBar1.IsIndeterminate = false;
+			}
 		}
 
 		private void buttonRunAll_Click(object sender, RoutedEventArgs e)
@@ -166,11 +217,6 @@ namespace MoveSvnToGitWPF
 				new DisplayItem("Icon(s) obtained from", "http://www.iconfinder.com", "http://www.iconfinder.com/icondetails/66891/128/move_tag_icon")
 
 			});
-		}
-
-		private void Window_Loaded(object sender, RoutedEventArgs e)
-		{
-			this.WindowState = System.Windows.WindowState.Maximized;
 		}
 	}
 
